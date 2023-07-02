@@ -1,0 +1,82 @@
+const express = require("express");
+const { PrismaClient } = require("@prisma/client");
+
+const prisma = new PrismaClient();
+const app = express();
+app.use(express.json());
+
+BigInt.prototype['toJSON'] = function () {
+  return parseInt(this.toString());
+};
+
+app.get("/migrations", async (req, res) => {
+  try {
+    const migrations = await getAllMigrations();
+    res.status(200).json(migrations);
+  } catch (error) {
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.post("/migrations", async (req, res) => {
+  try {
+    const newMigration = req.body;
+    const migration = await createMigration(newMigration);
+    res.status(201).json(migration);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.put("/migrations/:id", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const updatedMigration = req.body;
+    const migration = await updateMigration(id, updatedMigration);
+    res.status(200).json(migration);
+  } catch (error) {
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.delete("/migrations/:id", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const migration = await deleteMigration(id);
+    res.status(200).json(migration);
+  } catch (error) {
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+async function getAllMigrations() {
+  const migrations = await prisma.migrations.findMany();
+  return migrations;
+}
+
+async function createMigration(newMigration) {
+  const migration = await prisma.migrations.create({
+    data: newMigration,
+  });
+  return migration;
+}
+
+async function updateMigration(id, updatedMigration) {
+  const migration = await prisma.migrations.update({
+    where: { ID: id },
+    data: updatedMigration,
+  });
+  return migration;
+}
+
+async function deleteMigration(id) {
+  const migration = await prisma.migrations.delete({
+    where: { ID: id },
+  });
+  return migration;
+}
+
+app.listen(3000, () => {
+  console.log("Server is running on port 3000");
+});

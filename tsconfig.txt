@@ -1,0 +1,223 @@
+TypeScript compilation is the process of converting TypeScript code (.ts or .tsx files) into JavaScript code (.js files) that can be executed by JavaScript runtimes or web browsers.
+TypeScript is a statically-typed superset of JavaScript, which means it includes additional features and syntax to enable static type checking during development.
+However, browsers and JavaScript environments do not understand TypeScript natively, so it needs to be compiled into JavaScript for proper execution.
+
+
+BASICS OF TS CONFIG AND ITS FILE.
+
+tsconfig.json
+
+{
+  "compilerOptions": {
+    "target": "ES2018",
+    "module": "commonjs",
+    "outDir": "dist",
+    "strict": true
+  },
+  "include": ["src"],
+  "exclude": ["node_modules"]
+}
+
+
+Explanation: 
+
+===============================================
+ 
+target : The "target" compiler option in the tsconfig.json file specifies the ECMAScript version to which the TypeScript code will be transpiled.
+it determines the syntax and features that will be used in the generated JavaScript output. 
+
+example: for target of ES2018 lets consider you have to following code in a typescript file.
+
+TypeScript code : 
+const myArray = [1, 2, 3];
+console.log(myArray.includes(2));
+
+1. Generated JS file for target: "ES2018"
+const myArray = [1, 2, 3];
+console.log(myArray.includes(2));
+
+2. Generated JS file for target: "ES2015"
+var myArray = [1, 2, 3];
+console.log(myArray.indexOf(2) !== -1);
+
+Array.prototype.indexOf() method is used instead of includes(). 
+The includes() method was introduced in a later ECMAScript version and is not available in ES5, so the TypeScript compiler provides a compatible alternative.
+
+==================================================
+
+module: The "module" compiler option in the tsconfig.json file specifies the module system to use for generating the JavaScript output from TypeScript.
+ It determines how modules are organized and imported/exported in the generated JavaScript code.
+ 
+1. module: "commonjs"
+
+	"commonjs": This is the module system used by Node.js and is the default option for TypeScript. 
+	It uses require() for importing modules and module.exports or exports for exporting values.
+
+	example: 
+
+	// myModule.ts
+	export const foo = 'Hello, world!';
+
+	// main.ts
+	import { foo } from './myModule';
+	console.log(foo);
+
+
+	The above ts files are compiles as following in js files
+
+	// myModule.js
+	"use strict";
+	Object.defineProperty(exports, "__esModule", { value: true });
+	exports.foo = 'Hello, world!';
+
+	// main.js
+	"use strict";
+	Object.defineProperty(exports, "__esModule", { value: true });
+	const myModule_1 = require("./myModule");
+	console.log(myModule_1.foo);
+	
+2. module: When you set the "module" option to "ESNext" in your tsconfig.json file, 
+the TypeScript compiler generates JavaScript code using ECMAScript modules (ES modules) syntax.
+
+Generated o/p will be in the following format
+
+
+Typescript files: 
+
+// moduleA.ts
+export const foo = 'Hello, world!';
+
+// moduleB.ts
+import { foo } from './moduleA';
+console.log(foo);
+
+compiled Js files: 
+
+// moduleA.js
+const foo = 'Hello, world!';
+export { foo };
+
+// moduleB.js
+import { foo } from './moduleA';
+console.log(foo);
+
+=====================================================================================
+
+target: The "outDir" compiler option in the tsconfig.json file 
+specifies the output directory where the TypeScript compiler (tsc) will place the generated JavaScript files after transpilation.
+
+if target:"dist" then o/p dist structure is as follows.
+
+- src
+  - index.ts
+  - utils.ts
+
+- dist
+  - index.js
+  - utils.js
+  
+When specifying the "outDir" compiler option in the tsconfig.json file, you can use either a relative path or an absolute path.
+
+Relative: If you specify a relative path for "outDir", it will be resolved relative to the location of the tsconfig.json file.
+		  For example, if your tsconfig.json file is located in the project's root directory, and you set "outDir": "dist",
+	      the TypeScript compiler will create a dist directory in the same location as the tsconfig.json file.  
+
+Absolute: Alternatively, you can provide an absolute path as the value of "outDir".
+		  This allows you to specify the exact location where you want the generated JavaScript files to be placed,
+		  regardless of the location of the tsconfig.json file.
+		  For example, "outDir": "/path/to/my/dist" specifies an absolute path to the dist directory.
+
+=====================================================================================
+
+strict: The "strict" compiler option in the tsconfig.json file enables a set of strict type-checking options in TypeScript.
+		When "strict" is set to true, 
+	    it activates several individual strict options that enforce stronger type checking and stricter adherence to best practices.
+        Let's explore each strict option in detail:
+		
+1. strictNullChecks: When enabled, TypeScript checks for null and undefined values in assignments, function calls, and property accesses.
+			         It helps prevent null-related errors such as null reference exceptions
+					 
+					let x: string = null; // Error: Type 'null' is not assignable to type 'string'
+					let y: string | null = null; // Okay
+					let z: string | undefined = undefined; // Okay
+
+2. noImplicitAny: This option requires that all variables have an explicit type declaration. It prevents variables from having an implicit type of any.
+                  
+				  function add(a, b) { // Error: Parameter 'a' implicitly has an 'any' type
+					  return a + b;
+				  }
+
+3. strictPropertyInitialization: This option ensures that class properties are initialized in the constructor or have a definite assignment assertion
+                                 class MyClass {
+								  property: number; // Error: Property 'property' has no initializer and is not definitely assigned
+								}
+
+
+4. strictPropertyAccess: When enabled, TypeScript performs strict checks for property access, preventing access to properties that may be undefined or null
+					     let obj: { prop?: number } = {};
+						 let x: number = obj.prop; // Error: Property 'prop' does not exist on type '{ prop?: number }'
+						 
+
+All of them are enable in we set strict: "true", there is a provision to set individual option as well.
+{
+  "compilerOptions": {
+    "strictNullChecks": true,
+    "noImplicitAny": true,
+    "strictFunctionTypes": false,
+    "strictPropertyInitialization": true,
+    "strictBindCallApply": false,
+    "strictPropertyAccess": true,
+    "alwaysStrict": true
+  }
+}
+
+Yes, if any of the individual strict checks fail in TypeScript, it will result in a compilation error, and the build process will fail.
+======================================================================================		
+
+include: The "include" compiler option in the tsconfig.json file specifies which files and directories should be included in the TypeScript compilation process
+
+1. File Path: You can include specific file paths directly in the "include" array. 
+   For example, if you want to include only the index.ts file, your "include" option would look like this:
+   
+   "include": ["src/index.ts"]
+
+
+2. Directory Path: To include an entire directory and its files, you can specify the directory path in the "include" array. 
+   For example, if you want to include the utils directory and all its files, your "include" option would be:
+   
+   "include": ["src/utils"]
+
+3. Glob Pattern: Glob patterns allow you to specify a pattern that matches multiple files or directories using wildcards and other symbols.
+   The most commonly used wildcard is *, which matches any number of characters (excluding path separators).
+   Here's an example that includes all TypeScript files (*.ts) in the src directory:
+   
+   "include": ["src/*.ts"]
+
+4. To include files from directories and subdirectories recursively, you can use the ** pattern.
+   For example, if you want to include all TypeScript files in the src directory and its subdirectories, you can use the following pattern:
+   
+   "include": ["src/**/*.ts"]
+
+By default, the output files generated by the TypeScript compiler will mirror the directory structure of the input files.
+The output file structure will be preserved unless you explicitly configure the "outDir" option in the tsconfig.json file.
+
+- src
+  - index.ts
+  - utils
+    - helper.ts
+
+o/p directory structure
+
+- dist
+  - index.js
+  - utils
+    - helper.js
+
+Similar way there is an exclude option available , to exclude the files from compilation process..
+
+====================================================
+
+Several other options are also available which can be seen when you initialise a Typescript Project which auto generated a config file with all the available options.
+
+
+ 
